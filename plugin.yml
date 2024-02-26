@@ -1,4 +1,4 @@
-name: GH Pages Helm Publisher 
+name: GH Helm Chart Publisher
 description: Allows for publishing a helm chart and pushing it to a branch published by GH Pages
 author: https://github.com/tylerauerbeck
 requirements:

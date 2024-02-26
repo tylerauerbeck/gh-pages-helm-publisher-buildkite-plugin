@@ -17,86 +17,34 @@
 set -o errexit
 set -o pipefail
 
-GITHUB_TOKEN=$1
-CHARTS_DIR=$2
-CHARTS_URL=$3
-OWNER=$4
-REPOSITORY=$5
-BRANCH=$6
-TARGET_DIR=$7
-HELM_VERSION=$8
-LINTING=$9
-COMMIT_USERNAME=${10}
-COMMIT_EMAIL=${11}
-APP_VERSION=${12}
-CHART_VERSION=${13}
-INDEX_DIR=${14}
-ENTERPRISE_URL=${15}
-DEPENDENCIES=${16}
+GITHUB_TOKEN=${GITHUB_TOKEN}
+CHARTS_DIR=${CHARTS_DIR}
+CHARTS_URL=${CHARTS_URL}
+OWNER=${OWNER}
+REPOSITORY=${REPOSITORY}
+BRANCH=${BRANCH}
+TARGET_DIR=${TARGET_DIR}
+HELM_VERSION=${HELM_VERSION}
+LINTING=${LINTING}
+COMMIT_USERNAME=${COMMIT_USERNAME}
+COMMIT_EMAIL=${COMMIT_EMAIL}
+APP_VERSION=${APP_VERSION}
+CHART_VERSION=${CHART_VERSION}
+INDEX_DIR=${INDEX_DIR}
+ENTERPRISE_URL=${ENTERPRISE_URL}
+DEPENDENCIES=${DEPENDENCIES}
 
 CHARTS=()
 CHARTS_TMP_DIR=$(mktemp -d)
 REPO_ROOT=$(git rev-parse --show-toplevel)
-REPO_URL=""
+#REPO_URL=""
 
 main() {
-  if [[ -z "$HELM_VERSION" ]]; then
-      HELM_VERSION="3.10.0"
-  fi
-
-  if [[ -z "$CHARTS_DIR" ]]; then
-      CHARTS_DIR="charts"
-  fi
-
-  if [[ -z "$OWNER" ]]; then
-      OWNER=$(cut -d '/' -f 1 <<< "$GITHUB_REPOSITORY")
-  fi
-
-  if [[ -z "$REPOSITORY" ]]; then
-      REPOSITORY=$(cut -d '/' -f 2 <<< "$GITHUB_REPOSITORY")
-  fi
-
-  if [[ -z "$BRANCH" ]]; then
-      BRANCH="gh-pages"
-  fi
-
-  if [[ -z "$TARGET_DIR" ]]; then
-    TARGET_DIR="."
-  fi
-
-  if [[ -z "$CHARTS_URL" ]]; then
-      CHARTS_URL="https://${OWNER}.github.io/${REPOSITORY}"
-  fi
-
-  if [[ "$TARGET_DIR" != "." && "$TARGET_DIR" != "docs" ]]; then
-    CHARTS_URL="${CHARTS_URL}/${TARGET_DIR}"
-  fi
-
-  if [[ -z "$REPO_URL" ]]; then
-      if [[ -z "$ENTERPRISE_URL" ]]; then
-          REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${OWNER}/${REPOSITORY}"
-      else
-          REPO_URL="https://x-access-token:${GITHUB_TOKEN}@${ENTERPRISE_URL}/${REPOSITORY}"
-      fi
-  fi
-
-  if [[ -z "$COMMIT_USERNAME" ]]; then
-      COMMIT_USERNAME="${GITHUB_ACTOR}"
-  fi
-
-  if [[ -z "$COMMIT_EMAIL" ]]; then
-      COMMIT_EMAIL="${GITHUB_ACTOR}@users.noreply.github.com"
-  fi
-
-  if [[ -z "$INDEX_DIR" ]]; then
-      INDEX_DIR=${TARGET_DIR}
-  fi
-
   locate
   download
   get_dependencies
   dependencies
-  if [[ "$LINTING" != "off" ]]; then
+  if [[ "${LINTING}" != "off" ]]; then
     lint
   fi
   package

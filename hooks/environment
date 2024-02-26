@@ -1,1 +1,134 @@
 #!/bin/bash
+
+if [ ${BUILDKITE_PLUGIN_GH_HELM_CHART_PUBLISHER_DEBUG_PLUGIN:-false} == "true" ]; then
+	set -x
+#else
+#	set -eu
+fi
+
+echo "--- :k8s: Determining Helm Version"
+
+GITHUB_TOKEN=${GITHUB_TOKEN}
+
+if [ -z ${GITHUB_TOKEN} ]; then
+  echo "GITHUB_TOKEN is required"
+  exit 1
+fi
+
+echo "--- GitHub token set"
+
+if [ -z ${CHARTS_DIR} ]; then
+  export CHARTS_DIR="./charts"
+fi
+
+echo "--- Using charts directory: ${CHARTS_DIR}"
+
+if [ -z ${OWNER} ]; then
+  case $BUILDKITE_REPO in
+	git*)
+	  export OWNER=$(echo ${BUILDKITE_REPO} | cut -d ':' -f 2 | cut -d '/' -f 1)
+	  ;;
+	http*)
+	  export OWNER=$(echo $REPO | cut -d '/' -f 4)
+	  ;;
+	*)
+	  echo "Unsupported repository URL"
+	  exit 1
+	  ;;
+  esac
+fi
+
+echo "--- Using owner: ${OWNER}"
+
+if [ -z ${REPOSITORY} ]; then
+  case $BUILDKITE_REPO in
+	git*)
+	  export REPOSITORY=$(echo ${BUILDKITE_REPO} | cut -d ':' -f 2 | cut -d '/' -f 2)
+	  ;;
+	http*)
+	  export REPOSITORY=$(echo $REPO | cut -d '/' -f 5)
+	  ;;
+	*)
+	  echo "Unsupported repository URL"
+	  exit 1
+	  ;;
+  esac
+fi
+
+if [[ -z "$ENTERPRISE_URL" ]]; then
+	REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${OWNER}/${REPOSITORY}"
+else
+	REPO_URL="https://x-access-token:${GITHUB_TOKEN}@${ENTERPRISE_URL}/${OWNER}/${REPOSITORY}"
+fi
+
+
+echo "--- Using repository: ${REPOSITORY}"
+
+# `https://<OWNER>.github.io/<REPOSITORY>`"
+if [ -z ${CHARTS_URL} ]; then
+  export CHARTS_URL="https://${OWNER}.github.io/${REPOSITORY}"
+fi
+
+echo "--- Using charts URL: ${CHARTS_URL}"
+
+if [ -z ${BRANCH} ]; then
+  export BRANCH="gh-pages"
+fi
+
+echo "--- Using branch: ${BRANCH}"
+
+if [ -z ${TARGET_DIR} ]; then
+  export TARGET_DIR="."
+fi
+
+echo "--- Using target directory: ${TARGET_DIR}"
+
+if [ -z ${HELM_VERSION} ]; then
+  export HELM_VERSION="3.10.0"
+fi
+
+echo "--- Using Helm version: ${HELM_VERSION}"
+
+if [ -z ${LINTING} ]; then
+  LINTING="on"
+fi
+
+echo "--- Using linting: ${LINTING}"
+
+if [ -z ${COMMIT_USERNAME} ]; then
+   export COMMIT_USERNAME="${BUILDKITE_BUILD_CREATOR}"
+fi
+
+echo "--- Using commit username: ${COMMIT_USERNAME}"
+
+if [ -z ${COMMIT_EMAIL} ]; then
+  export COMMIT_EMAIL="${BUILDKITE_BUILD_CREATOR_EMAIL}"
+fi
+
+echo "--- Using commit email: ${COMMIT_EMAIL}"
+
+if [ -z ${APP_VERSION} ]; then
+  export APP_VERSION="${APP_VERSION}"
+fi
+
+echo "--- Using app version: ${APP_VERSION}"
+
+if [ -z ${CHART_VERSION} ]; then
+  export CHART_VERSION="${CHART_VERSION}"
+fi
+
+echo "--- Using chart version: ${CHART_VERSION}"
+
+if [ -z ${INDEX_DIR} ]; then
+  export INDEX_DIR="."
+fi
+
+echo "--- Using index directory: ${INDEX_DIR}"
+
+
+
+# if [ -z ${BUILDKITE_PLUGIN_GH_HELM_CHART_PUBLISHER_DEPENDENCIES} ]; then
+#   DEPENDENCIES="false"
+# else
+#   DEPENDENCIES=${BUILDKITE_PLUGIN_GH_HELM_CHART_PUBLISHER_DEPENDENCIES}
+# fi
